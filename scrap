@@ -1,0 +1,116 @@
+#!/usr/bin/env php
+
+<?php
+
+include __DIR__ . '/functions.php';
+include __DIR__ . '/progress.php';
+
+$options = getopt("f:");
+
+$config_file = __DIR__ . '/config.json';
+
+$phone_regex = null;
+
+$chunk = 1000;
+
+if(!array_key_exists('f', $options)){
+    echo "ERROR: The CSV file with numbers is required. `scrap -f path\\to\\numbers_file`\n";die;
+};
+
+echo "INFO: Verifying configuration file\n";
+
+if(!file_exists($config_file)) {
+    echo "ERROR: Configuration file '.$config_file . ' not found\n";die;
+}
+
+$config = json_decode(file_get_contents($config_file));
+
+if (!property_exists($config, 'server_url')) {
+    echo "ERROR: The server URL is not set in the configuration file\n";die;
+}
+
+if (!property_exists($config, 'api_key')) {
+    echo "ERROR: The API key is not set in the configuration file\n";die;
+}
+
+if (property_exists($config, 'regex')) {
+    $phone_regex = $config->regex;
+} else {
+    echo "WARNING: No phone number regex has been provided\n";
+}
+
+
+echo "INFO: Configuration file accepted\n";
+
+$numbers_file = $options['f'];
+if(!file_exists($numbers_file)) {
+    echo sprintf("ERROR: Numbers file `%s` is not found\n", $numbers_file);die;
+}
+
+$invalid_numbers = [];
+$valid_numbers = [];
+
+$numbers = file($numbers_file);
+    
+if (count($numbers) > $chunk) {
+    echo (sprintf("ERROR: Number of lines in the numbers file is too large. Consider splitting the file into smaller chunks of %s records\n", $chunk));die;
+}
+
+echo sprintf("INFO: Validating numbers in file `%s`\n", $numbers_file);
+
+foreach ($numbers as $number) {
+    $number = trim($number);
+    if ($phone_regex) {
+        if (preg_match($phone_regex, $number)) {
+            $valid_numbers[] = $number;
+        } else {
+            $invalid_numbers[] = $number;
+        }
+    }
+}
+
+echo sprintf("INFO: Number validation done.\n");
+echo sprintf("INFO: Found %s TOTAL record(s).\n", count($numbers));
+echo sprintf("INFO: Found %s VALID number(s).\n", count($valid_numbers));
+if(count($invalid_numbers) > 0){
+    echo sprintf("WARNING: Found %s INVALID number(s).\n", count($invalid_numbers));
+}
+
+echo "Do you want to proceed with name scrapping (y/n): ";
+
+
+$stdin = fopen('php://stdin', 'r');
+$yes   = false;
+
+while (!$yes)
+{
+    
+    $input = trim(fgets($stdin));
+    
+    if ($input == 'y')
+    {
+        break;
+    } elseif ($input == 'n') {
+        exit("ABORTED!!\n");
+    } else {
+        echo("Please enter y or n: ");
+        continue;
+    }
+}
+
+echo("INFO: Pinging the server to check it's availability at {$config->server_url}/ping\n");
+
+ping($config);
+
+echo("INFO: Beginning bulk name searching!\n");
+
+for ($i=0; $i<count($valid_numbers); ++$i) {
+    
+    show_status($i, count($valid_numbers));
+    
+    search($config, $valid_numbers[$i]);
+    
+}
+
+echo "\nComplete.\n";die;
+

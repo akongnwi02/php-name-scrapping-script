@@ -1,0 +1,5 @@
+{
+  "server_url": "https://webhook.site/8f70aa9b-be6c-48db-b2fc-ee6627bd678c",
+  "api_key": "TESTKEY",
+  "regex": "/^[0-9]{11}$/"
+}
