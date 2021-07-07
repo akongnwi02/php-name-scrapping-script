@@ -106,7 +106,7 @@ echo("INFO: Beginning bulk name searching!\n");
 
 for ($i=0; $i<count($valid_numbers); ++$i) {
     
-    show_status($i, count($valid_numbers));
+    show_status($i+1, count($valid_numbers));
     
     search($config, $valid_numbers[$i]);
     
