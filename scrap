@@ -102,7 +102,7 @@ echo("INFO: Pinging the server to check it's availability at {$config->server_ur
 
 ping($config);
 
-echo("INFO: Beginning bulk name searching!\n");
+echo("INFO: Performing bulk name search...\n");
 
 for ($i=0; $i<count($valid_numbers); ++$i) {
     
