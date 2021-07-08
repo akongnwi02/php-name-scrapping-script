@@ -87,10 +87,10 @@ while (!$yes)
     
     $input = trim(fgets($stdin));
     
-    if ($input == 'y')
+    if (strtolower($input) == 'y')
     {
         break;
-    } elseif ($input == 'n') {
+    } elseif (strtolower($input) == 'n') {
         exit("ABORTED!!\n");
     } else {
         echo("Please enter y or n: ");
